@@ -9,7 +9,7 @@
     <AssemblyOriginatorKeyFile>../../FirebaseAdmin.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <Deterministic>true</Deterministic>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Description>
       Firebase Admin SDK enables server-side .NET developers to integrate Firebase into their
       services and applications.
@@ -21,6 +21,10 @@
     <PackageProjectUrl>https://github.com/Firebase/firebase-admin-dotnet</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Firebase/firebase-admin-dotnet</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.5|AnyCPU'">
+    <WarningsAsErrors />
   </PropertyGroup>
 
   <ItemGroup>

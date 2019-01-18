@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static FirebaseAdmin.Auth.UserRecord;
 
 namespace FirebaseAdmin.Auth
 {
@@ -23,21 +24,24 @@ namespace FirebaseAdmin.Auth
     /// This is the entry point to all server-side Firebase Authentication operations. You can
     /// get an instance of this class via <c>FirebaseAuth.DefaultInstance</c>.
     /// </summary>
-    public sealed class FirebaseAuth: IFirebaseService
+    public sealed class FirebaseAuth : IFirebaseService
     {
         private readonly FirebaseApp _app;
         private bool _deleted;
         private readonly Lazy<FirebaseTokenFactory> _tokenFactory;
         private readonly Lazy<FirebaseTokenVerifier> _idTokenVerifier;
+        private readonly Lazy<FirebaseUserManager> _userManager;
         private readonly Object _lock = new Object();
 
         private FirebaseAuth(FirebaseApp app)
         {
             _app = app;
-            _tokenFactory = new Lazy<FirebaseTokenFactory>(() => 
+            _tokenFactory = new Lazy<FirebaseTokenFactory>(() =>
                 FirebaseTokenFactory.Create(_app), true);
-            _idTokenVerifier = new Lazy<FirebaseTokenVerifier>(() => 
+            _idTokenVerifier = new Lazy<FirebaseTokenVerifier>(() =>
                 FirebaseTokenVerifier.CreateIDTokenVerifier(_app), true);
+            _userManager = new Lazy<FirebaseUserManager>(() =>
+                FirebaseUserManager.Create(_app));
         }
 
         /// <summary>
@@ -235,6 +239,72 @@ namespace FirebaseAdmin.Auth
             return await _idTokenVerifier.Value.VerifyTokenAsync(idToken, cancellationToken)
                 .ConfigureAwait(false);
         }
+        public async Task<UserRecord> GetUserByIdAsync(string uid)
+        {
+            lock (_lock)
+            {
+                if (_deleted)
+                {
+                    throw new InvalidOperationException("Cannot invoke after deleting the app.");
+                }
+            }
+            return await _userManager.Value.GetUserByIdAsync(uid);
+        }
+        public async Task<UserRecord> GetUserByEmailAsync(string email)
+        {
+            lock (_lock)
+            {
+                if (_deleted)
+                {
+                    throw new InvalidOperationException("Cannot invoke after deleting the app.");
+                }
+            }
+            return await _userManager.Value.GetUserByEmailAsync(email);
+        }
+        public async Task<UserRecord> GetUserByPhoneNumberAsync(string phoneNumber)
+        {
+            lock (_lock)
+            {
+                if (_deleted)
+                {
+                    throw new InvalidOperationException("Cannot invoke after deleting the app.");
+                }
+            }
+            return await _userManager.Value.GetUserByPhoneNumber(phoneNumber);
+        }
+        public async Task<string> CreateUserAsync(CreateRequest request)
+        {
+            lock (_lock)
+            {
+                if (_deleted)
+                {
+                    throw new InvalidOperationException("Cannot invoke after deleting the app.");
+                }
+            }
+            return await _userManager.Value.CreateUserAsync(request);
+        }
+        public async Task UpdateUserAsync(UserRecord user)
+        {
+            lock (_lock)
+            {
+                if (_deleted)
+                {
+                    throw new InvalidOperationException("Cannot invoke after deleting the app.");
+                }
+            }
+            await _userManager.Value.UpdateUserAsync(user);
+        }
+        public async Task DeleteUserAsync(string uid)
+        {
+            lock (_lock)
+            {
+                if (_deleted)
+                {
+                    throw new InvalidOperationException("Cannot invoke after deleting the app.");
+                }
+            }
+            await _userManager.Value.DeleteUserAsync(uid);
+        }
 
         void IFirebaseService.Delete()
         {
@@ -278,7 +348,7 @@ namespace FirebaseAdmin.Auth
             {
                 throw new ArgumentNullException("App argument must not be null.");
             }
-            return app.GetOrInit<FirebaseAuth>(typeof(FirebaseAuth).Name, () => 
+            return app.GetOrInit<FirebaseAuth>(typeof(FirebaseAuth).Name, () =>
             {
                 return new FirebaseAuth(app);
             });
