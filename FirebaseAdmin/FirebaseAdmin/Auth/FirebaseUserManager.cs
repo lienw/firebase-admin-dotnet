@@ -97,10 +97,7 @@ namespace FirebaseAdmin.Auth
                 }
                 else
                 {
-                    var error = "Response status code does not indicate success: "
-                            + $"{(int)response.StatusCode} ({response.StatusCode})"
-                            + $"{Environment.NewLine}{json}";
-                    throw new FirebaseException(error);
+                    throw JObject.Parse(json).ToObject<HttpErrorResponse>();
                 }
             }
             catch (HttpRequestException e)
@@ -123,10 +120,7 @@ namespace FirebaseAdmin.Auth
                 }
                 else
                 {
-                    var error = "Response status code does not indicate success: "
-                            + $"{(int)response.StatusCode} ({response.StatusCode})"
-                            + $"{Environment.NewLine}{json}";
-                    throw new FirebaseException(error);
+                    throw JObject.Parse(json).ToObject<HttpErrorResponse>();
                 }
             }
             catch (HttpRequestException e)
